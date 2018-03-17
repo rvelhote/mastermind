@@ -23,6 +23,7 @@ import React from 'react';
 import AttemptCollection from './attempt-collection';
 import ColorSelection from './color-selection';
 import ColorDisplay from './color-display';
+import Verifier from '../../game/verifier';
 
 const GAME_TYPE_HOST = 'host';
 const GAME_TYPE_GUEST = 'guest';
@@ -44,6 +45,7 @@ class Board extends React.Component {
             game: {
                 type: GAME_TYPE_WAITING,
                 playing: false,
+                foundSolution: false,
             },
             secret: {
                 locked: false,
@@ -52,10 +54,12 @@ class Board extends React.Component {
         };
     }
 
+
     onAttemptSubmit(event) {
         event.preventDefault();
 
         let isValid = true;
+        let isCorrect = true;
 
         // TODO DRY!
         const formData = new FormData(event.target);
@@ -73,9 +77,15 @@ class Board extends React.Component {
             return;
         }
 
+        const feedback = Verifier.verify(this.state.secret.code, jsonFormData);
+        const foundSolution = Verifier.isCorrect(feedback);
+
         this.setState(previousState => {
             previousState.attempts.push(jsonFormData);
             return {
+                game: {
+                    foundSolution
+                },
                 attempts: previousState.attempts,
             }
         });
@@ -122,8 +132,13 @@ class Board extends React.Component {
         }
 
         let play = <ColorSelection submit={this.onAttemptSubmit}/>
-        if(this.state.attempts.length >= this.props.maxAttempts) {
+        if(this.state.attempts.length >= 55+this.props.maxAttempts && !this.state.game.foundSolution) {
             play = <div>game over pal</div>
+        }
+
+        let foundSolution = '';
+        if(this.state.game.foundSolution) {
+            foundSolution = <div>Solution found!</div>
         }
 
         return <div>
@@ -131,6 +146,7 @@ class Board extends React.Component {
 
             <AttemptCollection attempts={this.state.attempts}/>
 
+            {foundSolution}
             {play}
             {secret}
         </div>;
