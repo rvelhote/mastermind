@@ -24,7 +24,7 @@ import ReactDOM from 'react-dom';
 import Board from './components/board/board'
 import Header from './components/page/header'
 
-const App = () => <Board maxAttempts={2}/>;
+const App = () => <Board/>;
 
 ReactDOM.render(<App />, document.getElementById('app'));
 

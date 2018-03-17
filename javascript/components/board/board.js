@@ -23,6 +23,7 @@ import React from 'react';
 import AttemptCollection from './attempt-collection';
 import ColorSelection from './color-selection';
 import ColorDisplay from './color-display';
+import Configurator from './configurator';
 import Verifier from '../../game/verifier';
 
 const GAME_TYPE_HOST = 'host';
@@ -39,8 +40,14 @@ class Board extends React.Component {
 
         this.onSecretSubmit = this.onSecretSubmit.bind(this);
         this.onAttemptSubmit = this.onAttemptSubmit.bind(this);
+        this.onSubmitConfiguration = this.onSubmitConfiguration.bind(this);
 
         this.state = {
+            configuration: {
+                maxAttempts: 10,
+                totalHoles: 4,
+                totalColors: 4,
+            },
             attempts: [],
             game: {
                 type: GAME_TYPE_WAITING,
@@ -91,6 +98,20 @@ class Board extends React.Component {
         });
     }
 
+    onSubmitConfiguration(event) {
+        event.preventDefault();
+
+        const formData = new FormData(event.target);
+
+        this.setState({
+            configuration: {
+                totalColors: parseInt(formData.get('totalColors')),
+                totalHoles: parseInt(formData.get('totalHoles')),
+                maxAttempts: parseInt(formData.get('maxAttempts')),
+            }
+        });
+    }
+
     onSecretSubmit(event) {
         event.preventDefault();
 
@@ -132,7 +153,7 @@ class Board extends React.Component {
         }
 
         let play = <ColorSelection submit={this.onAttemptSubmit}/>
-        if(this.state.attempts.length >= 55+this.props.maxAttempts && !this.state.game.foundSolution) {
+        if(this.state.attempts.length >= 55+this.state.configuration.maxAttempts && !this.state.game.foundSolution) {
             play = <div>game over pal</div>
         }
 
@@ -142,7 +163,9 @@ class Board extends React.Component {
         }
 
         return <div>
-            <div>Current Attempt: {this.state.attempts.length} max 10</div>
+            <div>Current Attempt: {this.state.attempts.length} max {this.state.configuration.maxAttempts}</div>
+
+            <Configurator configuration={this.state.configuration} onSubmitConfiguration={this.onSubmitConfiguration}/>
 
             <AttemptCollection attempts={this.state.attempts}/>
 
