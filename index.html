@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>Mastermind</title>
+
+    <!--<script src="http://cdn.peerjs.com/0.3.14/peer.js"></script>-->
+
+    <style>
+        div.thingy { width: 50px; height: 50px; border: 1px solid #888; }
+        div.thingy2 { width: 25px; height: 25px; border: 1px solid #888; }
+
+        .blue { background-color: blue; }
+        .green { background-color: green; }
+        .red { background-color: red; }
+        .purple { background-color: purple; }
+
+        .board.waiting { display: none; }
+        .status.waiting { display: block; }
+    </style>
+</head>
+<body>
+
+    <div id="app"></div>
+
+    <script src="/mastermind/assets/javascript/main.js"></script>
+
+
+
+    <!--<div id="status" class="status waiting">-->
+        <!--Waiting for another player-->
+    <!--</div>-->
+    <!--<div id="board" class="board waiting">-->
+        <!--<table align="center">-->
+            <!--<tbody>-->
+                <!--<tr>-->
+                    <!--<td>-->
+                        <!--<form method="post" class="line">-->
+                            <!--<table>-->
+                                <!--<tbody>-->
+                                    <!--<tr>-->
+                                        <!--<td>-->
+                                            <!--<div class="thingy thingy-selectable">-->
+                                                <!--<input type="hidden" name="one" value="" />-->
+                                            <!--</div>-->
+                                        <!--</td>-->
+                                        <!--<td>-->
+                                            <!--<div class="thingy thingy-selectable">-->
+                                                <!--<input type="hidden" name="two" value="" />-->
+                                            <!--</div>-->
+                                        <!--</td>-->
+                                        <!--<td>-->
+                                            <!--<div class="thingy thingy-selectable">-->
+                                                <!--<input type="hidden" name="three" value="" />-->
+                                            <!--</div>-->
+                                        <!--</td>-->
+                                        <!--<td>-->
+                                            <!--<div class="thingy thingy-selectable">-->
+                                                <!--<input type="hidden" name="four" value="" />-->
+                                            <!--</div>-->
+                                        <!--</td>-->
+                                        <!--<td>-->
+                                            <!--<button type="submit">Submit</button>-->
+                                        <!--</td>-->
+                                        <!--<td>-->
+                                            <!--<table>-->
+                                                <!--<tbody>-->
+                                                <!--<tr>-->
+                                                    <!--<td>-->
+                                                        <!--<div class="thingy2"></div>-->
+                                                    <!--</td>-->
+                                                    <!--<td>-->
+                                                        <!--<div class="thingy2"></div>-->
+                                                    <!--</td>-->
+                                                <!--</tr>-->
+                                                <!--<tr>-->
+                                                    <!--<td>-->
+                                                        <!--<div class="thingy2"></div>-->
+                                                    <!--</td>-->
+                                                    <!--<td>-->
+                                                        <!--<div class="thingy2"></div>-->
+                                                    <!--</td>-->
+                                                <!--</tr>-->
+                                                <!--</tbody>-->
+                                            <!--</table>-->
+                                        <!--</td>-->
+                                    <!--</tr>-->
+                                <!--</tbody>-->
+                            <!--</table>-->
+                        <!--</form>-->
+                    <!--</td>-->
+                <!--</tr>-->
+            <!--</tbody>-->
+            <!--<tfoot>-->
+                <!--<tr>-->
+                    <!--<td>-->
+                        <!--<form method="post" id="secret">-->
+                            <!--<table>-->
+                                <!--<td>-->
+                                    <!--<div class="thingy">-->
+                                        <!--<input type="hidden" name="one" />-->
+                                    <!--</div>-->
+                                <!--</td>-->
+                                <!--<td>-->
+                                    <!--<div class="thingy">-->
+                                        <!--<input type="hidden" name="two" />-->
+                                    <!--</div>-->
+                                <!--</td>-->
+                                <!--<td>-->
+                                    <!--<div class="thingy">-->
+                                        <!--<input type="hidden" name="three" />-->
+                                    <!--</div>-->
+                                <!--</td>-->
+                                <!--<td>-->
+                                    <!--<div class="thingy">-->
+                                        <!--<input type="hidden" name="four" />-->
+                                    <!--</div>-->
+                                <!--</td>-->
+                                <!--<td colspan="2">-->
+                                    <!--<button type="submit">Submit Secret</button>-->
+                                <!--</td>-->
+                            <!--</table>-->
+                        <!--</form>-->
+                    <!--</td>-->
+                <!--</tr>-->
+            <!--</tfoot>-->
+        <!--</table>-->
+    <!--</div>-->
+
+    <!--<script type="text/javascript">-->
+        <!--const url = new URL(window.location);-->
+        <!--const params = new URLSearchParams(url.search);-->
+
+        <!--const peer = new Peer(params.get('id'), {key: 'p43mp0yrrmjkyb9'});-->
+
+        <!--let conn = null;-->
+
+        <!--let fetchData = {-->
+            <!--method: 'POST',-->
+            <!--body: JSON.stringify({ action: 'peer-new', peerId: params.get('id') }),-->
+            <!--headers: {-->
+                <!--'Accept': 'application/json, text/plain, */*',-->
+                <!--'Content-Type': 'application/json'-->
+            <!--}-->
+        <!--};-->
+
+        <!--fetch('/server.php', fetchData) // Call the fetch function passing the url of the API as a parameter-->
+            <!--.then(function() {-->
+                <!--console.log("Peer registered");-->
+            <!--})-->
+            <!--.catch(function() {-->
+                <!--console.log("Peer failed registration");-->
+            <!--});-->
+
+        <!--// if(peer.id === 'two') {-->
+        <!--//     peer.on('connection', function(conn) {-->
+        <!--//         conn.on('data', function(data){-->
+        <!--//             // Will print 'hi!'-->
+        <!--//             console.log(data);-->
+        <!--//         });-->
+        <!--//     });-->
+        <!--// }-->
+
+        <!--const colors = ['blue', 'green', 'red', 'purple'];-->
+
+        <!--const onThingySelectableClick = (event) => {-->
+            <!--event.preventDefault();-->
+
+            <!--let colorIndex = parseInt(event.target.dataset.colorIndex);-->
+            <!--event.target.classList.remove(colors[colorIndex - 1]);-->
+
+            <!--if(colorIndex === colors.length) {-->
+                <!--colorIndex = 0;-->
+            <!--}-->
+
+            <!--event.target.querySelector('input').value = colors[colorIndex];-->
+            <!--event.target.classList.add(colors[colorIndex]);-->
+
+            <!--event.target.dataset.colorIndex = (colorIndex + 1).toString();-->
+        <!--};-->
+
+        <!--const selectableThingies = document.querySelectorAll('div.thingy-selectable');-->
+        <!--selectableThingies.forEach(element => {-->
+            <!--element.dataset.colorIndex = 0;-->
+            <!--element.addEventListener('click', onThingySelectableClick);-->
+        <!--});-->
+
+        <!--const onLineFormSubmit = (event) => {-->
+            <!--event.preventDefault();-->
+
+            <!--const formData = new FormData(event.target);-->
+            <!--let json = {};-->
+
+            <!--formData.forEach((v, k) => {-->
+                <!--json[k] = v;-->
+            <!--});-->
+
+            <!--if(conn !== null) {-->
+                <!--conn.send(json);-->
+            <!--}-->
+        <!--};-->
+
+        <!--const forms = document.querySelectorAll('form.line');-->
+        <!--forms.forEach(element => {-->
+            <!--element.addEventListener('submit', onLineFormSubmit);-->
+        <!--});-->
+    <!--</script>-->
+</body>
+</html>

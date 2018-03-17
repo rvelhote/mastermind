@@ -1,0 +1,33 @@
+{
+  "name": "mastermind",
+  "version": "1.0.0",
+  "description": "Mastermind Game",
+  "main": "index.js",
+  "scripts": {
+    "dev": "./node_modules/.bin/webpack-cli --mode development",
+    "build": "./node_modules/.bin/webpack-cli --mode production",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mastermind",
+    "game",
+    "reactjs"
+  ],
+  "author": "Ricardo Velhote <rvelhote+mastermind@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "peerjs": "^0.3.14",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-jest": "^22.4.1",
+    "babel-loader": "^7.1.4",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.24.1",
+    "jest": "^22.4.2",
+    "webpack": "^4.1.1",
+    "webpack-cli": "^2.0.11"
+  }
+}
