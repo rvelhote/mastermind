@@ -30,7 +30,7 @@ const style = {
 
 const FeedbackDisplay = props => <div>
     {
-        props.feedback.map((f, i) => <div key={index} style={style} className={f}/>)
+        props.feedback.map((f, i) => <div key={i} style={style} className={f}/>)
     }
 </div>;
 
