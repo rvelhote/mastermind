@@ -63,13 +63,13 @@ class Board extends React.Component {
 
         // TODO DRY!
         const formData = new FormData(event.target);
-        let jsonFormData = [];
+        let attempt = [];
 
         formData.forEach((v, k) => {
             if (v.length === 0) {
                 isValid = false;
             }
-            jsonFormData.push(v);
+            attempt.push(v);
         });
 
         if (!isValid) {
@@ -77,11 +77,11 @@ class Board extends React.Component {
             return;
         }
 
-        const feedback = Verifier.verify(this.state.secret.code, jsonFormData);
+        const feedback = Verifier.verify(this.state.secret.code, attempt);
         const foundSolution = Verifier.isCorrect(feedback);
 
         this.setState(previousState => {
-            previousState.attempts.push(jsonFormData);
+            previousState.attempts.push({ attempt, feedback });
             return {
                 game: {
                     foundSolution

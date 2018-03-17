@@ -20,25 +20,24 @@
  * SOFTWARE.
  */
 import React from 'react';
-import ColorDisplay from './color-display';
-import FeedbackDisplay from './feedback-display';
 
-const AttemptCollection = props =>
-    <ul className={'attempts'}>
-        {
-            props.attempts.map((attempt, index) =>
-                <li key={index}>
-                    <ColorDisplay colors={attempt.attempt}/>
-                    <FeedbackDisplay feedback={attempt.feedback}/>
-                </li>
-            )
-        }
-    </ul>;
+const style = {
+    'display': 'inline-block',
+    'border': '1px solid #999',
+    'width': '25px',
+    'height': '25px'
+};
 
-AttemptCollection.displayName = 'AttemptCollection';
+const FeedbackDisplay = props => <div>
+    {
+        props.feedback.map((color, index) => <div key={index} style={style} className={color}/>)
+    }
+</div>;
 
-AttemptCollection.propTypes = {};
+FeedbackDisplay.displayName = 'FeedbackDisplay';
 
-AttemptCollection.defaultProps = {};
+FeedbackDisplay.propTypes = {};
 
-export default AttemptCollection;
+FeedbackDisplay.defaultProps = {};
+
+export default FeedbackDisplay;
