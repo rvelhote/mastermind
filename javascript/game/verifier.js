@@ -22,6 +22,7 @@
 
 const FEEDBACK_CORRECT = 'correct';
 const FEEDBACK_EXISTS = 'exists';
+const FEEDBACK_EMPTY = 'empty';
 
 /**
  * Each guess is made by placing a row of code pegs on the decoding board. Once placed, the codemaker provides
@@ -63,9 +64,10 @@ function verify(secret, attempt) {
     attempt.forEach((s, i) => {
         if(s === secret[i]) {
             feedback.push(FEEDBACK_CORRECT);
-
         } else if(secret.indexOf(s) !== -1 && collected[s] < maximums[s]) {
             feedback.push(FEEDBACK_EXISTS);
+        } else {
+            feedback.push(FEEDBACK_EMPTY);
         }
 
         collected[s]++;
