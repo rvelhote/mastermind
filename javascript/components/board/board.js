@@ -44,7 +44,7 @@ const OpCode = {
     CONNECT: 0,
     ATTEMPT_VERIFIED: 1,
     SECRET_SET: 2,
-    ATTEMPT_RECEIVED: 3,
+    ATTEMPT_VERIFY: 3,
 };
 
 class Board extends React.Component {
@@ -109,16 +109,11 @@ class Board extends React.Component {
         this.codemaker.on('open', (d) => { this.codemaker.send({ opcode: OpCode.CONNECT}); });
 
         this.codemaker.on('data', d => {
-
-
-            console.log('Data Received from the codemaker');
-            console.log(d);
-
-
-
             if(d.opcode === OpCode.ATTEMPT_VERIFIED) {
-                console.log(d);
-                console.log('attempt verified');
+                this.setState(previousState => {
+                    previousState.attempts.push({ attempt: d.attempt, feedback: d.feedback });
+                    return previousState;
+                });
             }
 
             if(d.opcode === OpCode.SECRET_SET) {
@@ -127,38 +122,17 @@ class Board extends React.Component {
                     return p;
                 });
             }
-
-            // if(data.opcode === 'VERIFY') {
-            //     console.log('VERIFY THIS');
-            //
-            //     this.remoteConn.send({ opcode: 'VERIFY_RES', feedback: 'verification result' });
-            // }
-            //
-            // if(data.opcode === 'SECRET_SET') {
-            //     console.log('START GAME. SECRET WAS SET');
-            // }
-            //
-            // if(data.opcode === 'VERIFY_RES') {
-            //     console.log('RESULT VERIFIED CONTINUE WITH THE RESULT');
-            // }
-
-
         })
     }
 
+    /**
+     *
+     * @param conn
+     */
     onRemoteConnection(conn) {
-        // console.log()
-        // console.log(this.conn.id);
-        // console.log(conn.id);
-
-        // console.log('Someone connected to me');
-
-
         this.codebreaker = conn;
-        //
-        this.codebreaker.on('data', d => {
-            console.log(d);
 
+        this.codebreaker.on('data', d => {
             if(d.opcode === OpCode.CONNECT) {
                 this.setState(p => {
                     p.game.role = ROLE_CODEMAKER;
@@ -167,71 +141,55 @@ class Board extends React.Component {
                 });
             }
 
-            if(d.opcode === OpCode.ATTEMPT_RECEIVED) {
-                console.log(d);
+            if(d.opcode === OpCode.ATTEMPT_VERIFY) {
+                const feedback = Verifier.verify(this.state.secret.code, d.attempt);
+                const foundSolution = Verifier.isCorrect(feedback);
+
+                this.codebreaker.send({
+                    opcode: OpCode.ATTEMPT_VERIFIED,
+                    attempt: d.attempt,
+                    feedback: feedback,
+                });
             }
-
-           // console.log('data received from the codebreaker');
-           // console.log(d);
-           //
-           //  this.codebreaker.send({opcode: 'SOL_VERIFIED'});
         });
-
-        //
-        // this.remoteConn = conn;
-        //
-        // this.remoteConn.on('data', data => {
-        //
-        //     console.log(data);
-        //
-        //     if(data.opcode === 'CONNECT') {
-
-        //     }
-
-            // if(data.opcode === 'VERIFY') {
-            //     console.log('VERIFY THIS');
-            //
-            //     this.remoteConn.send({ opcode: 'VERIFY_RES', feedback: 'verification result' });
-            // }
-            //
-            // if(data.opcode === 'SECRET_SET') {
-            //     console.log('START GAME. SECRET WAS SET');
-            // }
-            //
-            // if(data.opcode === 'VERIFY_RES') {
-            //     console.log('RESULT VERIFIED CONTINUE WITH THE RESULT');
-            // }
-            //
-            //
-            //
-            // console.log('Received data');
-            // console.log(data);
-        // });
     }
 
+    /**
+     *
+     */
     disconnect() {
-        console.log(this.webDHT);
-
-
+        console.log('Not implemented')
     }
 
-
+    /**
+     *
+     */
     componentDidMount() {
         this.setState({
-            intervalId: setInterval(this.updateNodeList.bind(this), 10000),
+            intervalId: setInterval(this.updateNodeList.bind(this), 1000),
         });
     }
 
+    /**
+     *
+     */
     componentWillUnmount() {
         clearInterval(this.state.intervalId);
     }
 
+    /**
+     *
+     */
     updateNodeList() {
         this.setState({
             dht: this.webDHT.toJSON(),
         });
     }
 
+    /**
+     *
+     * @param event
+     */
     onAttemptSubmit(event) {
         event.preventDefault();
 
@@ -254,24 +212,13 @@ class Board extends React.Component {
             return;
         }
 
-        const feedback = Verifier.verify(this.state.secret.code, attempt);
-        const foundSolution = Verifier.isCorrect(feedback);
-
-        console.log('VERIFY THIS');
-        this.codemaker.send({ opcode: 'VERIFY', attempt });
-
-
-        this.setState(previousState => {
-            previousState.attempts.push({ attempt, feedback });
-            return {
-                game: {
-                    foundSolution
-                },
-                attempts: previousState.attempts,
-            }
-        });
+        this.codemaker.send({ opcode: OpCode.ATTEMPT_VERIFY, attempt });
     }
 
+    /**
+     *
+     * @param event
+     */
     onSubmitConfiguration(event) {
         event.preventDefault();
 
@@ -286,6 +233,10 @@ class Board extends React.Component {
         });
     }
 
+    /**
+     *
+     * @param event
+     */
     onSecretSubmit(event) {
         event.preventDefault();
 
@@ -322,6 +273,10 @@ class Board extends React.Component {
         });
     }
 
+    /**
+     *
+     * @returns {*}
+     */
     render() {
         let secret = null;
 
@@ -333,15 +288,9 @@ class Board extends React.Component {
             }
         }
 
-
-
         let play = null;
 
-        console.log(this.state);
-
         if(this.state.game.role === ROLE_CODEBREAKER && this.state.game.status !== GameStatus.UNCONNECTED) {
-            console.log("xxx");
-            console.log(this.state.game.status);
             if(this.state.attempts.length >= this.state.configuration.maxAttempts) {
                 play = <div>game over pal</div>
             } else if(this.state.game.status === GameStatus.PLAYING) {
