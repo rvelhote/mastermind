@@ -143,10 +143,17 @@ class Board extends React.Component {
             }
 
             if(d.opcode === OpCode.ATTEMPT_VERIFY) {
+                const feedback = Verifier.verify(this.state.secret.code, d.attempt);
+
+                this.setState(p => {
+                    p.attempts.push({ attempt: d.attempt, feedback });
+                   return p;
+                });
+
                 this.codebreaker.send({
                     opcode: OpCode.ATTEMPT_VERIFIED,
                     attempt: d.attempt,
-                    feedback: Verifier.verify(this.state.secret.code, d.attempt),
+                    feedback,
                 });
             }
         });
