@@ -109,6 +109,7 @@ class Board extends React.Component {
         this.codemaker.on('data', d => {
             if(d.opcode === OpCode.ATTEMPT_VERIFIED) {
                 this.setState(previousState => {
+                    previousState.game.foundSolution = Verifier.isCorrect(d.feedback);
                     previousState.attempts.push({ attempt: d.attempt, feedback: d.feedback });
                     return previousState;
                 });
@@ -140,13 +141,10 @@ class Board extends React.Component {
             }
 
             if(d.opcode === OpCode.ATTEMPT_VERIFY) {
-                const feedback = Verifier.verify(this.state.secret.code, d.attempt);
-                const foundSolution = Verifier.isCorrect(feedback);
-
                 this.codebreaker.send({
                     opcode: OpCode.ATTEMPT_VERIFIED,
                     attempt: d.attempt,
-                    feedback: feedback,
+                    feedback: Verifier.verify(this.state.secret.code, d.attempt),
                 });
             }
         });
@@ -317,11 +315,10 @@ class Board extends React.Component {
                 <div className="row">
 
                 <div className="col-xl">
-                    <div>Current Attempt: {this.state.attempts.length} max {this.state.configuration.maxAttempts}</div>
-
-                    <Configurator configuration={this.state.configuration} onSubmitConfiguration={this.onSubmitConfiguration}/>
-
-                    <AttemptCollection attempts={this.state.attempts}/>
+                    <fieldset>
+                        <legend>{this.state.attempts.length}/{this.state.configuration.maxAttempts} attempts</legend>
+                        <AttemptCollection attempts={this.state.attempts}/>
+                    </fieldset>
 
                     {foundSolution}
                     {play}
