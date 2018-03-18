@@ -64,6 +64,7 @@ class Board extends React.Component {
         this.disconnect = this.disconnect.bind(this);
 
         this.state = {
+            connected: false,
             dht: {
                 nodes: [],
                 values: [],
@@ -101,7 +102,7 @@ class Board extends React.Component {
     onPeerConnect(event) {
         event.preventDefault();
 
-        this.setState({ game: { role: ROLE_CODEBREAKER, status: GameStatus.WAITING_FOR_CODEMAKER } });
+        this.setState({ connected: true, game: { role: ROLE_CODEBREAKER, status: GameStatus.WAITING_FOR_CODEMAKER } });
 
         this.codemaker = this.me.connect(event.target.dataset.host);
         this.codemaker.on('open', (d) => { this.codemaker.send({ opcode: OpCode.CONNECT}); });
@@ -134,6 +135,7 @@ class Board extends React.Component {
         this.codebreaker.on('data', d => {
             if(d.opcode === OpCode.CONNECT) {
                 this.setState(p => {
+                    p.connected = true;
                     p.game.role = ROLE_CODEMAKER;
                     p.game.status = GameStatus.WAITING_FOR_CODEMAKER;
                     return p;
@@ -154,7 +156,15 @@ class Board extends React.Component {
      *
      */
     disconnect() {
-        console.log('Not implemented')
+        if(this.codebreaker) {
+            this.codebreaker.close();
+        }
+
+        if(this.codemaker) {
+            this.codemaker.close();
+        }
+
+        this.setState({connected: false})
     }
 
     /**
@@ -296,11 +306,10 @@ class Board extends React.Component {
                             <span>mastermind</span>
                         </h1>
                         <small>is a code-breaking game for two players invented in 1970 by Mordecai Meirowitz.</small>
-
                     </div>
                     <div className="col-sm">
                         <code>{ this.webDHT.nodeId.toString('hex') }</code>
-                        <button type="button" className="btn btn-danger" onClick={this.disconnect}>Disconnect</button>
+                        <button disabled={!this.state.connected} type="button" className="btn btn-danger" onClick={this.disconnect}>Disconnect</button>
                     </div>
                 </div>
             </header>
