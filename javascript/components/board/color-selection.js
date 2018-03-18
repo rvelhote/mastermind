@@ -87,7 +87,7 @@ class ColorSelection extends React.Component {
                          style={style}
                          data-index={index}
                          key={index}>
-                        <input type="hidden" name={`choice${index}`} value={color}/>
+                        <input type="hidden" name="choice" value={color}/>
                     </div>
                 )
             }

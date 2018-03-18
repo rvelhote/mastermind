@@ -174,22 +174,16 @@ class Board extends React.Component {
     onAttemptSubmit(event) {
         event.preventDefault();
 
-        let isValid = true;
-        let isCorrect = true;
+        if(this.state.attempts.length >= this.state.configuration.maxAttempts) {
+            alert(`No more attempts for you. Only ${this.state.configuration.maxAttempts}!`);
+            return;
+        }
 
-        // TODO DRY!
-        const formData = new FormData(event.target);
-        let attempt = [];
+        const form = new FormData(event.target);
+        const attempt = form.getAll('choice');
 
-        formData.forEach((v, k) => {
-            if (v.length === 0) {
-                isValid = false;
-            }
-            attempt.push(v);
-        });
-
-        if (!isValid) {
-            alert('Bad attempt!');
+        if(attempt.length !== this.state.configuration.totalHoles) {
+            alert(`Bad attempt! Must choose all ${this.state.configuration.totalHoles} colors!`);
             return;
         }
 
@@ -221,35 +215,24 @@ class Board extends React.Component {
     onSecretSubmit(event) {
         event.preventDefault();
 
-        if(this.state.secret.code.length > 0) {
+        if(this.state.secret.locked) {
             alert('Secret already set');
             return;
         }
 
-        let isValid = true;
+        const form = new FormData(event.target);
+        const secret = form.getAll('choice');
 
-        // TODO DRY!
-        const formData = new FormData(event.target);
-        let jsonFormData = [];
-
-        formData.forEach((v, k) => {
-            if (v.length === 0) {
-                isValid = false;
-            }
-            jsonFormData.push(v);
-        });
-
-        if (!isValid) {
-            alert('Bad secret!');
+        if(secret.length !== this.state.configuration.totalHoles) {
+            alert(`Bad secret! Must choose all ${this.state.configuration.totalHoles} colors!`);
             return;
         }
 
         this.codebreaker.send({ opcode: OpCode.SECRET_SET });
-
         this.setState(p => {
             p.game.status = GameStatus.PLAYING;
             p.secret.locked = true;
-            p.secret.code = jsonFormData;
+            p.secret.code = secret;
             return p;
         });
     }
