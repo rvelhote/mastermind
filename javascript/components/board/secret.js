@@ -20,10 +20,19 @@
  * SOFTWARE.
  */
 import React from 'react';
+import ColorSelection from './color-selection';
 
-const Secret = props => <div>
-    secret
+const Secret = props =>
+
+
+
+<div className="card border-light">
+    <div className="card-header">Secret</div>
+    <div className="card-body">
+        <ColorSelection submit={props.submit} />
+    </div>
 </div>;
+
 
 Secret.displayName = 'Secret';
 

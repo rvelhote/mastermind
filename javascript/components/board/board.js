@@ -87,7 +87,7 @@ class Board extends React.Component {
             peer: null,
         };
 
-        this.webDHT = WebDHT.start({ bootstrap: ['ws://localhost:8000'] });
+        this.webDHT = WebDHT.start({bootstrap: ['ws://localhost:8000']});
 
         this.me = new Peer(this.webDHT.nodeId.toString('hex'), {key: 'p43mp0yrrmjkyb9'});
 
@@ -102,21 +102,23 @@ class Board extends React.Component {
     onPeerConnect(event) {
         event.preventDefault();
 
-        this.setState({ connected: true, game: { role: ROLE_CODEBREAKER, status: GameStatus.WAITING_FOR_CODEMAKER } });
+        this.setState({connected: true, game: {role: ROLE_CODEBREAKER, status: GameStatus.WAITING_FOR_CODEMAKER}});
 
         this.codemaker = this.me.connect(event.target.dataset.host);
-        this.codemaker.on('open', (d) => { this.codemaker.send({ opcode: OpCode.CONNECT}); });
+        this.codemaker.on('open', (d) => {
+            this.codemaker.send({opcode: OpCode.CONNECT});
+        });
 
         this.codemaker.on('data', d => {
-            if(d.opcode === OpCode.ATTEMPT_VERIFIED) {
+            if (d.opcode === OpCode.ATTEMPT_VERIFIED) {
                 this.setState(previousState => {
                     previousState.game.foundSolution = Verifier.isCorrect(d.feedback);
-                    previousState.attempts.push({ attempt: d.attempt, feedback: d.feedback });
+                    previousState.attempts.push({attempt: d.attempt, feedback: d.feedback});
                     return previousState;
                 });
             }
 
-            if(d.opcode === OpCode.SECRET_SET) {
+            if (d.opcode === OpCode.SECRET_SET) {
                 this.setState(p => {
                     p.game.status = GameStatus.PLAYING;
                     return p;
@@ -133,7 +135,7 @@ class Board extends React.Component {
         this.codebreaker = conn;
 
         this.codebreaker.on('data', d => {
-            if(d.opcode === OpCode.CONNECT) {
+            if (d.opcode === OpCode.CONNECT) {
                 this.setState(p => {
                     p.connected = true;
                     p.game.role = ROLE_CODEMAKER;
@@ -142,12 +144,12 @@ class Board extends React.Component {
                 });
             }
 
-            if(d.opcode === OpCode.ATTEMPT_VERIFY) {
+            if (d.opcode === OpCode.ATTEMPT_VERIFY) {
                 const feedback = Verifier.verify(this.state.secret.code, d.attempt);
 
                 this.setState(p => {
-                    p.attempts.push({ attempt: d.attempt, feedback });
-                   return p;
+                    p.attempts.push({attempt: d.attempt, feedback});
+                    return p;
                 });
 
                 this.codebreaker.send({
@@ -163,11 +165,11 @@ class Board extends React.Component {
      *
      */
     disconnect() {
-        if(this.codebreaker) {
+        if (this.codebreaker) {
             this.codebreaker.close();
         }
 
-        if(this.codemaker) {
+        if (this.codemaker) {
             this.codemaker.close();
         }
 
@@ -181,7 +183,7 @@ class Board extends React.Component {
     onAttemptSubmit(event) {
         event.preventDefault();
 
-        if(this.state.attempts.length >= this.state.configuration.maxAttempts) {
+        if (this.state.attempts.length >= this.state.configuration.maxAttempts) {
             alert(`No more attempts for you. Only ${this.state.configuration.maxAttempts}!`);
             return;
         }
@@ -189,12 +191,12 @@ class Board extends React.Component {
         const form = new FormData(event.target);
         const attempt = form.getAll('choice');
 
-        if(attempt.length !== this.state.configuration.totalHoles) {
+        if (attempt.length !== this.state.configuration.totalHoles) {
             alert(`Bad attempt! Must choose all ${this.state.configuration.totalHoles} colors!`);
             return;
         }
 
-        this.codemaker.send({ opcode: OpCode.ATTEMPT_VERIFY, attempt });
+        this.codemaker.send({opcode: OpCode.ATTEMPT_VERIFY, attempt});
     }
 
     /**
@@ -222,7 +224,7 @@ class Board extends React.Component {
     onSecretSubmit(event) {
         event.preventDefault();
 
-        if(this.state.secret.locked) {
+        if (this.state.secret.locked) {
             alert('Secret already set');
             return;
         }
@@ -230,12 +232,12 @@ class Board extends React.Component {
         const form = new FormData(event.target);
         const secret = form.getAll('choice');
 
-        if(secret.length !== this.state.configuration.totalHoles) {
+        if (secret.length !== this.state.configuration.totalHoles) {
             alert(`Bad secret! Must choose all ${this.state.configuration.totalHoles} colors!`);
             return;
         }
 
-        this.codebreaker.send({ opcode: OpCode.SECRET_SET });
+        this.codebreaker.send({opcode: OpCode.SECRET_SET});
         this.setState(p => {
             p.game.status = GameStatus.PLAYING;
             p.secret.locked = true;
@@ -251,39 +253,41 @@ class Board extends React.Component {
     render() {
         let secret = null;
 
-        if(this.state.game.role === ROLE_CODEMAKER && this.state.game.status !== GameStatus.UNCONNECTED) {
-            if(!this.state.secret.locked) {
-                secret = <ColorSelection submit={this.onSecretSubmit}/>;
+        if (this.state.game.role === ROLE_CODEMAKER && this.state.game.status !== GameStatus.UNCONNECTED) {
+            if (!this.state.secret.locked) {
+                secret = <div className="card border-light"><div className="card-header">Secret</div><div className="card-body"><ColorSelection submit={this.onSecretSubmit}/></div></div>;
             } else {
-                secret = <ColorDisplay colors={this.state.secret.code}/>;
+                secret = <div className="card border-light"><div className="card-header">Secret</div><div className="card-body"><ColorDisplay colors={this.state.secret.code}/></div></div>;
             }
         }
 
         let play = null;
 
-        if(this.state.game.role === ROLE_CODEBREAKER && this.state.game.status !== GameStatus.UNCONNECTED) {
-            if(this.state.attempts.length >= this.state.configuration.maxAttempts) {
-                play = <div>game over pal</div>
-            } else if(this.state.game.status === GameStatus.PLAYING) {
-                play = <ColorSelection submit={this.onAttemptSubmit}/>
+        if (this.state.game.role === ROLE_CODEBREAKER && this.state.game.status !== GameStatus.UNCONNECTED) {
+            if (this.state.attempts.length >= this.state.configuration.maxAttempts) {
+                play = <div>game over pal</div>;
+            } else if (this.state.game.status === GameStatus.PLAYING) {
+                play = <div className="card border-light"><div className="card-header">Attempt</div><div className="card-body"><ColorSelection submit={this.onAttemptSubmit}/></div></div>;
             }
         }
 
         let statusMessage = null;
-        if(this.state.game.status === GameStatus.UNCONNECTED) {
-            statusMessage = <div className="alert alert-info" role="alert">Unconnected. Choose someone from the list!</div>;
+        if (this.state.game.status === GameStatus.UNCONNECTED) {
+            statusMessage =
+                <div className="alert alert-info" role="alert">Unconnected. Choose someone from the list!</div>;
         }
 
-        if(this.state.game.status === GameStatus.WAITING_FOR_CODEMAKER) {
-            if(this.state.game.role === ROLE_CODEMAKER) {
+        if (this.state.game.status === GameStatus.WAITING_FOR_CODEMAKER) {
+            if (this.state.game.role === ROLE_CODEMAKER) {
                 statusMessage = <div className="alert alert-warning" role="alert">Set the secret!</div>;
             } else {
-                statusMessage = <div className="alert alert-warning" role="alert">Waiting for the codemaker to set a secret!</div>;
+                statusMessage =
+                    <div className="alert alert-warning" role="alert">Waiting for the codemaker to set a secret!</div>;
             }
         }
 
         let foundSolution = '';
-        if(this.state.game.foundSolution) {
+        if (this.state.game.foundSolution) {
             foundSolution = <div>Solution found!</div>
         }
 
@@ -292,37 +296,39 @@ class Board extends React.Component {
                 <div className="container">
                     <div className="col-sm">
                         <h1>
-                            <img alt="Mastermind Logo" src="//i.imgur.com/rN1zILE.png" />
+                            <img alt="Mastermind Logo" src="//i.imgur.com/rN1zILE.png"/>
                             <span>mastermind</span>
                         </h1>
                         <small>is a code-breaking game for two players invented in 1970 by Mordecai Meirowitz.</small>
                     </div>
                     <div className="col-sm">
-                        <code>{ this.webDHT.nodeId.toString('hex') }</code>
-                        <button disabled={!this.state.connected} type="button" className="btn btn-danger" onClick={this.disconnect}>Disconnect</button>
+                        <code>{this.webDHT.nodeId.toString('hex')}</code>
+                        <button disabled={!this.state.connected} type="button" className="btn btn-danger"
+                                onClick={this.disconnect}>Disconnect
+                        </button>
                     </div>
                 </div>
             </header>
 
-            <br />
+            <br/>
 
             <div className="container">
-
                 <div className="row">
                     <div className="col-xl">{statusMessage}</div>
                 </div>
                 <div className="row">
+                    <div className="col-xl">
+                        <AttemptCollection max={this.state.configuration.maxAttempts} attempts={this.state.attempts}/>
+                        {foundSolution}
 
-                <div className="col-xl">
-                    <fieldset>
-                        <legend>{this.state.attempts.length}/{this.state.configuration.maxAttempts} attempts</legend>
-                        <AttemptCollection attempts={this.state.attempts}/>
-                    </fieldset>
+                        <hr />
 
-                    {foundSolution}
-                    {play}
-                    {secret}
-                </div>
+                        {play}
+
+                        <hr />
+
+                        {secret}
+                    </div>
                     <div className="col-xl-5">
                         <NodeCollection dht={this.webDHT} onPeerConnect={this.onPeerConnect}/>
                     </div>

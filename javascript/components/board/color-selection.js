@@ -29,10 +29,18 @@ const colors = [
 ];
 
 const style = {
-    'display': 'inline-block',
-    'border': '1px solid #888',
-    'width': '50px',
-    'height': '50px'
+    display: 'inline-block',
+    border: '2px solid #000',
+    width: '50px',
+    height: '50px',
+    borderRadius: '4px',
+    margin: '0 20px',
+    verticalAlign: 'middle',
+    cursor: 'pointer',
+};
+
+const style2 = {
+    display: 'inline-block',
 };
 
 class ColorSelection extends React.Component {
@@ -51,6 +59,7 @@ class ColorSelection extends React.Component {
                 '',
                 '',
             ],
+            allChosen: false,
         }
     }
 
@@ -70,29 +79,33 @@ class ColorSelection extends React.Component {
             selectedColorIndex = 0;
         }
 
-        this.setState((prevState) => {
+        this.setState(prevState => {
             prevState.choice[target.dataset.index] = colors[selectedColorIndex];
-            return {
-                choice: prevState.choice,
-            };
+            prevState.allChosen = prevState.choice.filter(a => a.length !== 0).length === 4;
+            return prevState;
         });
     }
 
     render() {
         return <form onSubmit={this.props.submit}>
-            {
-                this.state.choice.map((color, index) =>
-                    <div onClick={this.onColorClick}
-                         className={color}
-                         style={style}
-                         data-index={index}
-                         key={index}>
-                        <input type="hidden" name="choice" value={color}/>
-                    </div>
-                )
-            }
+            <div>
+                {
+                    this.state.choice.map((color, index) =>
+                        <div onClick={this.onColorClick}
+                             className={color}
+                             style={style}
+                             data-index={index}
+                             key={index}>
+                            <input type="hidden" name="choice" value={color}/>
+                        </div>
+                    )
+                }
+            </div>
+                <div>
+                    <br/>
+                    <button disabled={!this.state.allChosen} className="btn btn-primary btn-lg btn-block" type="submit">Choose Secret</button>
+                </div>
 
-            <button type="submit">LOCK SECRET</button>
         </form>;
     }
 }

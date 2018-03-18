@@ -22,10 +22,14 @@
 import React from 'react';
 
 const style = {
-    'display': 'inline-block',
-    'border': '1px solid #888',
-    'width': '50px',
-    'height': '50px'
+    display: 'inline-block',
+    border: '2px solid #000',
+    width: '50px',
+    height: '50px',
+    borderRadius: '4px',
+    margin: '0 20px',
+    verticalAlign: 'middle',
+    cursor: 'pointer',
 };
 
 const ColorDisplay = props => <div>

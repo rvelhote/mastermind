@@ -23,17 +23,30 @@ import React from 'react';
 import ColorDisplay from './color-display';
 import FeedbackDisplay from './feedback-display';
 
+const style1 = {
+    display: 'inline-block',
+};
+
 const AttemptCollection = props =>
-    <ul className={'attempts'}>
-        {
-            props.attempts.map((attempt, index) =>
-                <li key={index}>
-                    <ColorDisplay colors={attempt.attempt}/>
-                    <FeedbackDisplay feedback={attempt.feedback}/>
-                </li>
-            )
-        }
-    </ul>;
+    <div className="card border-secondary">
+        <div className="card-header">{props.attempts.length}/{props.max} attempts</div>
+        <div className="card-body">
+            {
+                props.attempts.map((attempt, index) =>
+                    <div key={index}>
+                        <div style={style1}>
+                            <ColorDisplay colors={attempt.attempt}/>
+                        </div>
+                        <div style={style1}>
+                            <FeedbackDisplay feedback={attempt.feedback}/>
+                        </div>
+
+                        <hr />
+                    </div>
+                )
+            }
+        </div>
+    </div>;
 
 AttemptCollection.displayName = 'AttemptCollection';
 
