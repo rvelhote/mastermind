@@ -16,6 +16,9 @@
   "author": "Ricardo Velhote <rvelhote+mastermind@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "bittorrent-dht": "^8.2.0",
+    "debug": "^3.1.0",
+    "peer-relay": "0.0.2",
     "peerjs": "^0.3.14",
     "react": "^16.2.0",
     "react-dom": "^16.2.0"

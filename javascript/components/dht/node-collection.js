@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License (MIT)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,11 +20,25 @@
  * SOFTWARE.
  */
 import React from 'react';
-import ReactDOM from 'react-dom';
-import Board from './components/board/board'
 
-const App = () => <Board/>;
+const NodeCollection = props =>
+    <div className="card bg-light">
+        <div className="card-header">Available Players</div>
+        <div className="card-body">
+            <ul className="list-group list-group-flush">{
+                props.nodes.map((n, i) =>
+                    <li className="list-group-item" key={i}>
+                        <a href="#connect-to" data-host={n.host} onClick={props.onPeerConnect}>{n.host}</a>
+                    </li>)
+            }
+            </ul>
+        </div>
+    </div>;
 
-ReactDOM.render(<App />, document.getElementById('app'));
+NodeCollection.displayName = 'NodeCollection';
 
-export default App;
+NodeCollection.propTypes = {};
+
+NodeCollection.defaultProps = {};
+
+export default NodeCollection;
