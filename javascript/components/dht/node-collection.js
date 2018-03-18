@@ -20,20 +20,66 @@
  * SOFTWARE.
  */
 import React from 'react';
+import WebDHT from "../../game/dht";
 
-const NodeCollection = props =>
-    <div className="card bg-light">
-        <div className="card-header">Available Players</div>
-        <div className="card-body">
-            <ul className="list-group list-group-flush">{
-                props.nodes.map((n, i) =>
-                    <li className="list-group-item" key={i}>
-                        <a href="#connect-to" data-host={n.host} onClick={props.onPeerConnect}>{n.host}</a>
-                    </li>)
-            }
-            </ul>
-        </div>
-    </div>;
+class NodeCollection extends React.Component {
+    /**
+     *
+     * @param props
+     */
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            nodes: props.dht.toJSON().nodes,
+            intervalId: null,
+        };
+
+        this.updateNodeList = this.updateNodeList.bind(this);
+    }
+
+    /**
+     *
+     */
+    componentDidMount() {
+        this.setState({
+            intervalId: setInterval(this.updateNodeList, 1000),
+        });
+    }
+
+    /**
+     *
+     */
+    componentWillUnmount() {
+        clearInterval(this.state.intervalId);
+    }
+
+    /**
+     *
+     */
+    updateNodeList() {
+        const nodes = this.props.dht.toJSON().nodes;
+        this.setState(p => {
+            p.nodes = nodes;
+            return p;
+        });
+    }
+
+    render() {
+        return <div className="card bg-light">
+            <div className="card-header">Available Players</div>
+            <div className="card-body">
+                <ul className="list-group list-group-flush">{
+                    this.state.nodes.map((n, i) =>
+                        <li className="list-group-item" key={i}>
+                            <a href="#connect-to" data-host={n.host} onClick={this.props.onPeerConnect}>{n.host}</a>
+                        </li>)
+                }
+                </ul>
+            </div>
+        </div>;
+    }
+}
 
 NodeCollection.displayName = 'NodeCollection';
 

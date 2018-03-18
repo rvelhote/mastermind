@@ -86,9 +86,7 @@ class Board extends React.Component {
             peer: null,
         };
 
-        this.webDHT = WebDHT.start({
-            bootstrap: ['ws://localhost:8000']
-        });
+        this.webDHT = WebDHT.start({ bootstrap: ['ws://localhost:8000'] });
 
         this.me = new Peer(this.webDHT.nodeId.toString('hex'), {key: 'p43mp0yrrmjkyb9'});
 
@@ -159,31 +157,6 @@ class Board extends React.Component {
      */
     disconnect() {
         console.log('Not implemented')
-    }
-
-    /**
-     *
-     */
-    componentDidMount() {
-        this.setState({
-            intervalId: setInterval(this.updateNodeList.bind(this), 1000),
-        });
-    }
-
-    /**
-     *
-     */
-    componentWillUnmount() {
-        clearInterval(this.state.intervalId);
-    }
-
-    /**
-     *
-     */
-    updateNodeList() {
-        this.setState({
-            dht: this.webDHT.toJSON(),
-        });
     }
 
     /**
@@ -355,7 +328,7 @@ class Board extends React.Component {
                     {secret}
                 </div>
                     <div className="col-xl-5">
-                        <NodeCollection onPeerConnect={this.onPeerConnect} nodes={this.state.dht.nodes}/>
+                        <NodeCollection dht={this.webDHT} onPeerConnect={this.onPeerConnect}/>
                     </div>
                 </div>
             </div>
