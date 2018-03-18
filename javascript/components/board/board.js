@@ -32,7 +32,20 @@ import Peer from "peerjs";
 const ROLE_CODEMAKER = 'codemaker';
 const ROLE_CODEBREAKER = 'codebreaker';
 const ROLE_NONE = 'none';
-const GAME_TYPE_WAITING = 'waiting';
+// const GAME_TYPE_WAITING = 'waiting';
+
+const GameStatus = {
+    UNCONNECTED: 0,
+    WAITING_FOR_CODEMAKER: 1,
+    PLAYING: 2,
+};
+
+const OpCode = {
+    CONNECT: 0,
+    ATTEMPT_VERIFIED: 1,
+    SECRET_SET: 2,
+    ATTEMPT_RECEIVED: 3,
+};
 
 class Board extends React.Component {
     /**
@@ -63,8 +76,7 @@ class Board extends React.Component {
             attempts: [],
             game: {
                 role: ROLE_NONE,
-                type: GAME_TYPE_WAITING,
-                playing: false,
+                status: GameStatus.UNCONNECTED,
                 foundSolution: false,
             },
             secret: {
@@ -82,11 +94,6 @@ class Board extends React.Component {
 
         this.me.on('open', this.onPeerOpen);
         this.me.on('connection', this.onRemoteConnection);
-        // this.me.on('data', this.onRemoteConnection);
-
-        // this.conn = null;
-
-        this.remote = null;
     }
 
     onPeerOpen(id) {
@@ -96,16 +103,30 @@ class Board extends React.Component {
     onPeerConnect(event) {
         event.preventDefault();
 
-        this.setState({ game: { role: ROLE_CODEBREAKER } });
+        this.setState({ game: { role: ROLE_CODEBREAKER, status: GameStatus.WAITING_FOR_CODEMAKER } });
 
         this.codemaker = this.me.connect(event.target.dataset.host);
-        this.codemaker.on('open', () => { console.log('sending connection to remote'); this.codemaker.send({ opcode: 'CONNECT' }); });
+        this.codemaker.on('open', (d) => { this.codemaker.send({ opcode: OpCode.CONNECT}); });
 
         this.codemaker.on('data', d => {
 
 
             console.log('Data Received from the codemaker');
             console.log(d);
+
+
+
+            if(d.opcode === OpCode.ATTEMPT_VERIFIED) {
+                console.log(d);
+                console.log('attempt verified');
+            }
+
+            if(d.opcode === OpCode.SECRET_SET) {
+                this.setState(p => {
+                    p.game.status = GameStatus.PLAYING;
+                    return p;
+                });
+            }
 
             // if(data.opcode === 'VERIFY') {
             //     console.log('VERIFY THIS');
@@ -131,13 +152,29 @@ class Board extends React.Component {
         // console.log(conn.id);
 
         // console.log('Someone connected to me');
+
+
         this.codebreaker = conn;
         //
         this.codebreaker.on('data', d => {
-           console.log('data received from the codebreaker');
-           console.log(d);
+            console.log(d);
 
-            this.codebreaker.send({opcode: 'SOL_VERIFIED'});
+            if(d.opcode === OpCode.CONNECT) {
+                this.setState(p => {
+                    p.game.role = ROLE_CODEMAKER;
+                    p.game.status = GameStatus.WAITING_FOR_CODEMAKER;
+                    return p;
+                });
+            }
+
+            if(d.opcode === OpCode.ATTEMPT_RECEIVED) {
+                console.log(d);
+            }
+
+           // console.log('data received from the codebreaker');
+           // console.log(d);
+           //
+           //  this.codebreaker.send({opcode: 'SOL_VERIFIED'});
         });
 
         //
@@ -148,7 +185,7 @@ class Board extends React.Component {
         //     console.log(data);
         //
         //     if(data.opcode === 'CONNECT') {
-                this.setState({ game: { role: ROLE_CODEMAKER } });
+
         //     }
 
             // if(data.opcode === 'VERIFY') {
@@ -181,7 +218,7 @@ class Board extends React.Component {
 
     componentDidMount() {
         this.setState({
-            intervalId: setInterval(this.updateNodeList.bind(this), 1000),
+            intervalId: setInterval(this.updateNodeList.bind(this), 10000),
         });
     }
 
@@ -275,22 +312,20 @@ class Board extends React.Component {
             return;
         }
 
-        // console.log(this.remoteConn);
+        this.codebreaker.send({ opcode: OpCode.SECRET_SET });
 
-        this.codebreaker.send({ opcode: 'SECRET_SET' });
-
-        this.setState({
-            secret: {
-                locked: true,
-                code: jsonFormData,
-            },
+        this.setState(p => {
+            p.game.status = GameStatus.PLAYING;
+            p.secret.locked = true;
+            p.secret.code = jsonFormData;
+            return p;
         });
     }
 
     render() {
-        let secret = '<div>Not the codemaker</div>';
+        let secret = null;
 
-        if(this.state.game.role === ROLE_CODEMAKER) {
+        if(this.state.game.role === ROLE_CODEMAKER && this.state.game.status !== GameStatus.UNCONNECTED) {
             if(!this.state.secret.locked) {
                 secret = <ColorSelection submit={this.onSecretSubmit}/>;
             } else {
@@ -300,19 +335,32 @@ class Board extends React.Component {
 
 
 
-        let play = <div>Not the codebreaker</div>;
+        let play = null;
 
-        if(this.state.game.role === ROLE_CODEBREAKER) {
+        console.log(this.state);
 
-            if(this.state.attempts.length >= 55+this.state.configuration.maxAttempts && !this.state.game.foundSolution) {
+        if(this.state.game.role === ROLE_CODEBREAKER && this.state.game.status !== GameStatus.UNCONNECTED) {
+            console.log("xxx");
+            console.log(this.state.game.status);
+            if(this.state.attempts.length >= this.state.configuration.maxAttempts) {
                 play = <div>game over pal</div>
-            } else {
+            } else if(this.state.game.status === GameStatus.PLAYING) {
                 play = <ColorSelection submit={this.onAttemptSubmit}/>
             }
         }
 
+        let statusMessage = null;
+        if(this.state.game.status === GameStatus.UNCONNECTED) {
+            statusMessage = <div className="alert alert-info" role="alert">Unconnected. Choose someone from the list!</div>;
+        }
 
-
+        if(this.state.game.status === GameStatus.WAITING_FOR_CODEMAKER) {
+            if(this.state.game.role === ROLE_CODEMAKER) {
+                statusMessage = <div className="alert alert-warning" role="alert">Set the secret!</div>;
+            } else {
+                statusMessage = <div className="alert alert-warning" role="alert">Waiting for the codemaker to set a secret!</div>;
+            }
+        }
 
         let foundSolution = '';
         if(this.state.game.foundSolution) {
@@ -340,13 +388,9 @@ class Board extends React.Component {
             <br />
 
             <div className="container">
+
                 <div className="row">
-                    <div className="col-xl">
-                        <div className="alert alert-dismissible alert-info">
-                            Choose someone to play with from the list on your right. When you connect to someone you
-                            will be the <strong>codebreaker</strong> and the other player will be the <strong>codemaker</strong>.
-                        </div>
-                    </div>
+                    <div className="col-xl">{statusMessage}</div>
                 </div>
                 <div className="row">
 
