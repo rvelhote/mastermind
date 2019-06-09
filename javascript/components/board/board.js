@@ -290,24 +290,36 @@ class Board extends React.Component {
         }
 
         return <div>
-            <header className="navbar navbar-expand-lg navbar-light bg-light2">
+
+
+
+            <header className="mastermind-navbar navbar-light bg-light">
                 <div className="container">
-                    <div className="col-lg-12">
-                        <h1>
-                            <img alt="Mastermind Logo" src="//i.imgur.com/rN1zILE.png"/>
-                            <span>mastermind</span>
-                        </h1>
-                        <small>is a code-breaking game for two players invented in 1970 by Mordecai Meirowitz.</small>
+                    <div className="row align-items-center">
+                        <div className="col-xl-8">
+                            <h1>
+                                <img alt="Mastermind Logo" src="//i.imgur.com/rN1zILE.png"/>
+                                <span>mastermind</span>
+                            </h1>
+                            <small>is a code-breaking game for two players invented in 1970 by Mordecai Meirowitz.</small>
+                        </div>
+                        <div className="col">
+                            <code>{this.me.id}</code>
+                        </div>
                     </div>
-                    <div className="col-sm">
-                        {/*<button disabled={!this.state.connected} type="button" className="btn btn-danger"*/}
-                                {/*onClick={this.disconnect}>Disconnect*/}
-                        {/*</button>*/}
+                </div>
+                <div className="container">
+                    <div className="row">
+                        <div className="col">
+                            <NodeConnect onPeerConnect={this.onPeerConnect}/>
+                        </div>
                     </div>
                 </div>
             </header>
 
-            <br/>
+
+
+                <br />
 
             <div className="container">
                 <div className="row">
@@ -327,16 +339,8 @@ class Board extends React.Component {
                         {secret}
                     </div>
                     <div className="col-xl-5">
-                        <div className="card bg-light">
-                            <div className="card-header">My ID</div>
-                            <div className="card-body">
-                                <code>{this.me.id}</code>
-                            </div>
-                        </div>
 
-                        <br/>
 
-                        <NodeConnect onPeerConnect={this.onPeerConnect}/>
 
                         <br/>
 

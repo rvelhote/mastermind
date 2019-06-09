@@ -53,20 +53,16 @@ class NodeConnect extends React.Component {
     }
 
     render() {
-        return <div className="card bg-light">
-            <div className="card-header">
-                <div>Connect to another player</div>
-                <small>Ask the other player for his ID and enter it here. You will be the codebreaker.</small>
-            </div>
-            <div className="card-body">
-                <form className="form-inline" onSubmit={this.handleSubmit}>
+        return <form className="inline-form connect-to-form" onSubmit={this.handleSubmit}>
                     <div className="form-group">
-                        <input type="text" className="form-control" value={this.state.value} onChange={this.handleChange}/>
+                        <div className="input-group">
+                            <input type="text" className="form-control" value={this.state.value} onChange={this.handleChange}/>
+                            <div className="input-group-append">
+                                <button disabled={this.state.connectTo.length === 0} className="btn btn-primary" type="submit">Connect to another PEER</button>
+                            </div>
+                        </div>
                     </div>
-                    <button className="btn btn-primary" type="submit">Connect</button>
-                </form>
-            </div>
-        </div>;
+                </form>;
     }
 }
 
