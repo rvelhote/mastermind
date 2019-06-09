@@ -290,7 +290,7 @@ class Board extends React.Component {
         }
 
         return <div>
-            <header className="navbar navbar-expand-lg navbar-light bg-light">
+            <header className="navbar navbar-expand-lg navbar-light bg-light2">
                 <div className="container">
                     <div className="col-lg-12">
                         <h1>
