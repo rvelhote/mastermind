@@ -25,15 +25,17 @@ const colors = [
     'red',
     'blue',
     'green',
-    'purple'
+    'purple',
+    'yellow',
+    'orange',
 ];
 
 const style = {
     display: 'inline-block',
-    border: '2px solid #000',
+    border: '1px solid #888',
     width: '50px',
     height: '50px',
-    borderRadius: '4px',
+    borderRadius: '50%',
     margin: '0 20px',
     verticalAlign: 'middle',
     cursor: 'pointer',

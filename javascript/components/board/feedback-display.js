@@ -23,9 +23,10 @@ import React from 'react';
 
 const style = {
     'display': 'inline-block',
-    'border': '1px solid #999',
+    'border': '1px solid #888',
     'width': '25px',
-    'height': '25px'
+    'height': '25px',
+    'borderRadius': '50%',
 };
 
 const FeedbackDisplay = props => <div>

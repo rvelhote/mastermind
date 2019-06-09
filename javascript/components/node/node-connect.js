@@ -20,9 +20,8 @@
  * SOFTWARE.
  */
 import React from 'react';
-import WebDHT from "../../game/dht";
 
-class NodeCollection extends React.Component {
+class NodeConnect extends React.Component {
     /**
      *
      * @param props
@@ -30,61 +29,51 @@ class NodeCollection extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = {
-            nodes: props.dht.toJSON().nodes,
-            intervalId: null,
-        };
+        this.state = {connectTo: ''};
 
-        this.updateNodeList = this.updateNodeList.bind(this);
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     /**
      *
+     * @param event
      */
-    componentDidMount() {
-        this.setState({
-            intervalId: setInterval(this.updateNodeList, 1000),
-        });
+    handleSubmit(event) {
+        this.props.onPeerConnect(this.state.connectTo);
+        event.preventDefault();
     }
 
     /**
      *
+     * @param event
      */
-    componentWillUnmount() {
-        clearInterval(this.state.intervalId);
-    }
-
-    /**
-     *
-     */
-    updateNodeList() {
-        const nodes = this.props.dht.toJSON().nodes;
-        this.setState(p => {
-            p.nodes = nodes;
-            return p;
-        });
+    handleChange(event) {
+        this.setState({connectTo: event.target.value});
     }
 
     render() {
         return <div className="card bg-light">
-            <div className="card-header">Available Players</div>
+            <div className="card-header">
+                <div>Connect to another player</div>
+                <small>Ask the other player for his ID and enter it here. You will be the codebreaker.</small>
+            </div>
             <div className="card-body">
-                <ul className="list-group list-group-flush">{
-                    this.state.nodes.map((n, i) =>
-                        <li className="list-group-item" key={i}>
-                            <a href="#connect-to" data-host={n.host} onClick={this.props.onPeerConnect}>{n.host}</a>
-                        </li>)
-                }
-                </ul>
+                <form className="form-inline" onSubmit={this.handleSubmit}>
+                    <div className="form-group">
+                        <input type="text" className="form-control" value={this.state.value} onChange={this.handleChange}/>
+                    </div>
+                    <button className="btn btn-primary" type="submit">Connect</button>
+                </form>
             </div>
         </div>;
     }
 }
 
-NodeCollection.displayName = 'NodeCollection';
+NodeConnect.displayName = 'NodeConnect';
 
-NodeCollection.propTypes = {};
+NodeConnect.propTypes = {};
 
-NodeCollection.defaultProps = {};
+NodeConnect.defaultProps = {};
 
-export default NodeCollection;
+export default NodeConnect;

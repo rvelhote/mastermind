@@ -48,6 +48,8 @@ function verify(secret, attempt) {
         blue: 0,
         green: 0,
         purple: 0,
+        yellow: 0,
+        orange: 0,
     };
 
     const collected = {
@@ -55,6 +57,8 @@ function verify(secret, attempt) {
         blue: 0,
         green: 0,
         purple: 0,
+        yellow: 0,
+        orange: 0,
     };
 
     secret.forEach((s, i) => {

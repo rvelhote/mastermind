@@ -19,14 +19,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+import uuidv4 from 'uuid';
 import React from 'react';
 import AttemptCollection from './attempt-collection';
 import ColorSelection from './color-selection';
 import ColorDisplay from './color-display';
 import Configurator from './configurator';
+import NodeConnect from '../node/node-connect'
 import Verifier from '../../game/verifier';
-import WebDHT from "../../game/dht";
-import NodeCollection from "../dht/node-collection";
 import Peer from "peerjs";
 
 const ROLE_CODEMAKER = 'codemaker';
@@ -87,9 +87,7 @@ class Board extends React.Component {
             peer: null,
         };
 
-        this.webDHT = WebDHT.start({bootstrap: ['ws://localhost:8000']});
-
-        this.me = new Peer(this.webDHT.nodeId.toString('hex'), {key: 'p43mp0yrrmjkyb9'});
+        this.me = new Peer(uuidv4(), {key: 'p43mp0yrrmjkyb9'});
 
         this.me.on('open', this.onPeerOpen);
         this.me.on('connection', this.onRemoteConnection);
@@ -99,12 +97,10 @@ class Board extends React.Component {
         this.setState({peer: id});
     }
 
-    onPeerConnect(event) {
-        event.preventDefault();
-
+    onPeerConnect(peerId) {
         this.setState({connected: true, game: {role: ROLE_CODEBREAKER, status: GameStatus.WAITING_FOR_CODEMAKER}});
 
-        this.codemaker = this.me.connect(event.target.dataset.host);
+        this.codemaker = this.me.connect(peerId);
         this.codemaker.on('open', (d) => {
             this.codemaker.send({opcode: OpCode.CONNECT});
         });
@@ -272,9 +268,11 @@ class Board extends React.Component {
         }
 
         let statusMessage = null;
+        let lineBreak = <hr />;
         if (this.state.game.status === GameStatus.UNCONNECTED) {
+            lineBreak = null;
             statusMessage =
-                <div className="alert alert-info" role="alert">Unconnected. Choose someone from the list!</div>;
+                <div className="alert alert-info" role="alert">You are currently not connected to anyone!</div>;
         }
 
         if (this.state.game.status === GameStatus.WAITING_FOR_CODEMAKER) {
@@ -294,7 +292,7 @@ class Board extends React.Component {
         return <div>
             <header className="navbar navbar-expand-lg navbar-light bg-light">
                 <div className="container">
-                    <div className="col-sm">
+                    <div className="col-lg-12">
                         <h1>
                             <img alt="Mastermind Logo" src="//i.imgur.com/rN1zILE.png"/>
                             <span>mastermind</span>
@@ -302,10 +300,9 @@ class Board extends React.Component {
                         <small>is a code-breaking game for two players invented in 1970 by Mordecai Meirowitz.</small>
                     </div>
                     <div className="col-sm">
-                        <code>{this.webDHT.nodeId.toString('hex')}</code>
-                        <button disabled={!this.state.connected} type="button" className="btn btn-danger"
-                                onClick={this.disconnect}>Disconnect
-                        </button>
+                        {/*<button disabled={!this.state.connected} type="button" className="btn btn-danger"*/}
+                                {/*onClick={this.disconnect}>Disconnect*/}
+                        {/*</button>*/}
                     </div>
                 </div>
             </header>
@@ -321,16 +318,47 @@ class Board extends React.Component {
                         <AttemptCollection max={this.state.configuration.maxAttempts} attempts={this.state.attempts}/>
                         {foundSolution}
 
-                        <hr />
+                        {lineBreak}
 
                         {play}
 
-                        <hr />
+                        {lineBreak}
 
                         {secret}
                     </div>
                     <div className="col-xl-5">
-                        <NodeCollection dht={this.webDHT} onPeerConnect={this.onPeerConnect}/>
+                        <div className="card bg-light">
+                            <div className="card-header">My ID</div>
+                            <div className="card-body">
+                                <code>{this.me.id}</code>
+                            </div>
+                        </div>
+
+                        <br/>
+
+                        <NodeConnect onPeerConnect={this.onPeerConnect}/>
+
+                        <br/>
+
+                        <div className="card bg-light">
+                            <div className="card-header">Chat</div>
+                            <div className="card-body">
+                                <div className="alert alert-warning" role="alert">
+                                    Under Development
+                                </div>
+                            </div>
+                        </div>
+
+                        <br/>
+
+                        <div className="card bg-light">
+                            <div className="card-header">Score</div>
+                            <div className="card-body">
+                                <div className="alert alert-warning" role="alert">
+                                    Under Development
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
