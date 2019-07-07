@@ -21,20 +21,11 @@
  */
 import React from 'react';
 
-const style = {
-    display: 'inline-block',
-    border: '1px solid #888',
-    width: '50px',
-    height: '50px',
-    borderRadius: '50%',
-    margin: '0 20px',
-    verticalAlign: 'middle',
-    cursor: 'pointer',
-};
-
 const ColorDisplay = props => <div>
     {
-        props.colors.map((color, index) => <div key={index} style={style} className={color}/>)
+        props.colors.map((color, index) => <div key={index}>
+            <div className={'circle ' + color}/>
+        </div>)
     }
 </div>;
 

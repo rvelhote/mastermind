@@ -10,14 +10,16 @@
     <link href="https://bootswatch.com/4/journal/bootstrap.min.css" type="text/css" rel="stylesheet" />
 
     <style>
-        div.thingy { width: 50px; height: 50px; border: 1px solid #888; }
-        div.thingy2 { width: 25px; height: 25px; border: 1px solid #888; }
+
+        .circle { border: 2px solid #888; margin: 0 auto; width: 100px;height: 100px; border-radius: 50%; /*margin: 0 20px;*/ cursor: pointer; }
+        .circle:hover { border-color: #c6d4e2; }
+
 
         .blue { background-color: #345ae4; }
         .green { background-color: #31e031; }
         .red { background-color: #b52229; }
         .purple { background-color: #8720af; }
-        .yellow { background-color: #e0b930; }
+        .yellow { background-color: #ffff00; }
         .orange { background-color: #c26724; }
 
         .board.waiting { display: none; }
@@ -26,7 +28,7 @@
         .correct { background-color: #2A363B; }
         .exists { background-color: #EB7D23; }
 
-        .mastermind-navbar { padding: 0.5rem 1rem; }
+        .mastermind-navbar { padding: 0.5rem 1rem; margin-bottom: 0.5rem; }
         form.connect-to-form .form-group { margin-bottom: 0; }
 
         h1 { font-size: 18px; margin-top: 10px; font-weight: bold; display: inline-block; margin-right: 2px; }

@@ -20,6 +20,7 @@
  * SOFTWARE.
  */
 import React from 'react';
+import PropTypes from 'prop-types';
 
 class NodeConnect extends React.Component {
     /**
@@ -54,11 +55,11 @@ class NodeConnect extends React.Component {
 
     render() {
         return <form className="inline-form connect-to-form" onSubmit={this.handleSubmit}>
-                    <div className="form-group">
+            <div className="form-group">
                         <div className="input-group">
-                            <input type="text" className="form-control" value={this.state.value} onChange={this.handleChange}/>
+                            <input placeholder="The identifier of the peer that you want to connect to..." disabled={this.props.status !== 0} type="text" className="form-control" value={this.state.value} onChange={this.handleChange}/>
                             <div className="input-group-append">
-                                <button disabled={this.state.connectTo.length === 0} className="btn btn-primary" type="submit">Connect to another PEER</button>
+                                <button disabled={this.state.connectTo.length === 0 || this.props.status !== 0} className="btn btn-primary" type="submit">Connect to another PEER</button>
                             </div>
                         </div>
                     </div>
@@ -68,7 +69,10 @@ class NodeConnect extends React.Component {
 
 NodeConnect.displayName = 'NodeConnect';
 
-NodeConnect.propTypes = {};
+NodeConnect.propTypes = {
+    status: PropTypes.number,
+    onPeerConnect: PropTypes.func
+};
 
 NodeConnect.defaultProps = {};
 

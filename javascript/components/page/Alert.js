@@ -20,21 +20,23 @@
  * SOFTWARE.
  */
 import React from 'react';
+import PropTypes from 'prop-types';
 
-const Header = () => <div>
-  <h1>
-    <img alt="Mastermind Logo" src="//i.imgur.com/rN1zILE.png"/>
-    <span>mastermind</span>
-  </h1>
-  <small>is a code-breaking game for two players invented in 1970 by Mordecai
-    Meirowitz.
-  </small>
-</div>;
+const Alert = props =>
+    <div className={'alert alert-' + props.type} role="alert">
+      {props.message}
+    </div>;
 
-Header.displayName = 'Header';
+Alert.displayName = 'Header';
 
-Header.propTypes = {};
+Alert.propTypes = {
+  type: PropTypes.string,
+  message: PropTypes.string,
+};
 
-Header.defaultProps = {};
+Alert.defaultProps = {
+  type: 'info',
+  message: '',
+};
 
-export default Header;
+export default Alert;

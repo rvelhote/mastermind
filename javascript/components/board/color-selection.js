@@ -30,21 +30,6 @@ const colors = [
     'orange',
 ];
 
-const style = {
-    display: 'inline-block',
-    border: '1px solid #888',
-    width: '50px',
-    height: '50px',
-    borderRadius: '50%',
-    margin: '0 20px',
-    verticalAlign: 'middle',
-    cursor: 'pointer',
-};
-
-const style2 = {
-    display: 'inline-block',
-};
-
 class ColorSelection extends React.Component {
     /**
      *
@@ -90,15 +75,16 @@ class ColorSelection extends React.Component {
 
     render() {
         return <form onSubmit={this.props.submit}>
-            <div>
+            <div className="row">
                 {
                     this.state.choice.map((color, index) =>
+                        <div className='col'>
                         <div onClick={this.onColorClick}
-                             className={color}
-                             style={style}
+                             className={'circle ' + color}
                              data-index={index}
                              key={index}>
                             <input type="hidden" name="choice" value={color}/>
+                        </div>
                         </div>
                     )
                 }

@@ -28,10 +28,21 @@ import Configurator from './configurator';
 import NodeConnect from '../node/node-connect'
 import Verifier from '../../game/verifier';
 import Peer from "peerjs";
+import Identifier from './identifier';
+import Header from '../page/header';
+import Alert from '../page/Alert';
+import Player from '../../game/player';
 
-const ROLE_CODEMAKER = 'codemaker';
-const ROLE_CODEBREAKER = 'codebreaker';
-const ROLE_NONE = 'none';
+// const ROLE_CODEMAKER = 'codemaker';
+// const ROLE_CODEBREAKER = 'codebreaker';
+// const ROLE_NONE = 'none';
+
+const Role = {
+    NONE: 0,
+    CODE_MAKER: 1,
+    CODE_BREAKER: 2,
+};
+
 // const GAME_TYPE_WAITING = 'waiting';
 
 const GameStatus = {
@@ -45,6 +56,7 @@ const OpCode = {
     ATTEMPT_VERIFIED: 1,
     SECRET_SET: 2,
     ATTEMPT_VERIFY: 3,
+    RESET: 4,
 };
 
 class Board extends React.Component {
@@ -58,10 +70,12 @@ class Board extends React.Component {
         this.onSecretSubmit = this.onSecretSubmit.bind(this);
         this.onAttemptSubmit = this.onAttemptSubmit.bind(this);
         this.onSubmitConfiguration = this.onSubmitConfiguration.bind(this);
-        this.onPeerOpen = this.onPeerOpen.bind(this);
+        // this.onPeerOpen = this.onPeerOpen.bind(this);
         this.onPeerConnect = this.onPeerConnect.bind(this);
-        this.onRemoteConnection = this.onRemoteConnection.bind(this);
-        this.disconnect = this.disconnect.bind(this);
+        this.onConnectionEstablished = this.onConnectionEstablished.bind(this);
+        this.onDataReceived = this.onDataReceived.bind(this);
+        // this.onDataReceived = this.onDataReceived.bind(this);
+        // this.disconnect = this.disconnect.bind(this);
 
         this.state = {
             connected: false,
@@ -76,7 +90,7 @@ class Board extends React.Component {
             },
             attempts: [],
             game: {
-                role: ROLE_NONE,
+                role: Role.NONE,
                 status: GameStatus.UNCONNECTED,
                 foundSolution: false,
             },
@@ -87,89 +101,84 @@ class Board extends React.Component {
             peer: null,
         };
 
-        this.me = new Peer(uuidv4(), {key: 'p43mp0yrrmjkyb9'});
+        this.me = new Player();
 
-        this.me.on('open', this.onPeerOpen);
-        this.me.on('connection', this.onRemoteConnection);
+        this.me.subscribe('onConnectionEstablished', this.onConnectionEstablished);
+        this.me.subscribe('onDataReceived', this.onDataReceived);
+        // this.me.subscribe('onDataReceivedFromPlayer2', this.onDataReceived);
     }
 
-    onPeerOpen(id) {
-        this.setState({peer: id});
+    onDataReceived(data) {
+        if (data.opcode === OpCode.CONNECT) {
+            this.setState(p => {
+                p.connected = true;
+                p.game.status = GameStatus.WAITING_FOR_CODEMAKER;
+                p.game.role = Role.CODE_MAKER;
+                return p;
+            });
+        }
+
+        if (data.opcode === OpCode.ATTEMPT_VERIFY) {
+            const feedback = Verifier.verify(this.state.secret.code, data.attempt);
+
+            this.setState(p => {
+                p.attempts.push({attempt: data.attempt, feedback});
+                return p;
+            });
+
+            this.me.send({
+                opcode: OpCode.ATTEMPT_VERIFIED,
+                attempt: data.attempt,
+                feedback,
+            });
+        }
+
+        if (data.opcode === OpCode.ATTEMPT_VERIFIED) {
+            this.setState(previousState => {
+                previousState.game.foundSolution = Verifier.isCorrect(data.feedback);
+                previousState.attempts.push({attempt: data.attempt, feedback: data.feedback});
+                return previousState;
+            });
+        }
+
+        if (data.opcode === OpCode.SECRET_SET) {
+            this.setState(p => {
+                p.game.status = GameStatus.PLAYING;
+                return p;
+            });
+        }
     }
 
+    /**
+     * Connects to the specified peer for a game of Mastermind. By default the
+     * person connecting will go first as the code breaker.
+     * @param {string} peerId The peer that we want to connect to
+     */
     onPeerConnect(peerId) {
-        this.setState({connected: true, game: {role: ROLE_CODEBREAKER, status: GameStatus.WAITING_FOR_CODEMAKER}});
+        if(this.me.id === peerId) {
+            alert('You cannot connect to yourself');
+            return;
+        }
 
-        this.codemaker = this.me.connect(peerId);
-        this.codemaker.on('open', (d) => {
-            this.codemaker.send({opcode: OpCode.CONNECT});
+        this.setState(previousState => {
+            previousState.game.role = Role.CODE_BREAKER;
+            return previousState;
         });
 
-        this.codemaker.on('data', d => {
-            if (d.opcode === OpCode.ATTEMPT_VERIFIED) {
-                this.setState(previousState => {
-                    previousState.game.foundSolution = Verifier.isCorrect(d.feedback);
-                    previousState.attempts.push({attempt: d.attempt, feedback: d.feedback});
-                    return previousState;
-                });
-            }
-
-            if (d.opcode === OpCode.SECRET_SET) {
-                this.setState(p => {
-                    p.game.status = GameStatus.PLAYING;
-                    return p;
-                });
-            }
-        })
+        this.me.connect(peerId);
     }
 
     /**
-     *
-     * @param conn
+     * This event means that the peer that initiated the connection has
+     * established the connection and that the receiving end of the connection
+     * has also received the connection. The game can now start.
      */
-    onRemoteConnection(conn) {
-        this.codebreaker = conn;
-
-        this.codebreaker.on('data', d => {
-            if (d.opcode === OpCode.CONNECT) {
-                this.setState(p => {
-                    p.connected = true;
-                    p.game.role = ROLE_CODEMAKER;
-                    p.game.status = GameStatus.WAITING_FOR_CODEMAKER;
-                    return p;
-                });
-            }
-
-            if (d.opcode === OpCode.ATTEMPT_VERIFY) {
-                const feedback = Verifier.verify(this.state.secret.code, d.attempt);
-
-                this.setState(p => {
-                    p.attempts.push({attempt: d.attempt, feedback});
-                    return p;
-                });
-
-                this.codebreaker.send({
-                    opcode: OpCode.ATTEMPT_VERIFIED,
-                    attempt: d.attempt,
-                    feedback,
-                });
-            }
+    onConnectionEstablished() {
+        this.setState(previousState => {
+            previousState.connected = true;
+            previousState.game.status = GameStatus.WAITING_FOR_CODEMAKER;
+            return previousState;
         });
-    }
-
-    /**
-     *
-     */
-    disconnect() {
-        if (this.codebreaker) {
-            this.codebreaker.close();
-        }
-
-        if (this.codemaker) {
-            this.codemaker.close();
-        }
-
-        this.setState({connected: false})
     }
 
     /**
@@ -192,7 +201,7 @@ class Board extends React.Component {
             return;
         }
 
-        this.codemaker.send({opcode: OpCode.ATTEMPT_VERIFY, attempt});
+        this.me.send({opcode: OpCode.ATTEMPT_VERIFY, attempt});
     }
 
     /**
@@ -233,7 +242,8 @@ class Board extends React.Component {
             return;
         }
 
-        this.codebreaker.send({opcode: OpCode.SECRET_SET});
+        this.me.send({opcode: OpCode.SECRET_SET});
+
         this.setState(p => {
             p.game.status = GameStatus.PLAYING;
             p.secret.locked = true;
@@ -249,19 +259,20 @@ class Board extends React.Component {
     render() {
         let secret = null;
 
-        if (this.state.game.role === ROLE_CODEMAKER && this.state.game.status !== GameStatus.UNCONNECTED) {
+        if (this.state.game.role === Role.CODE_MAKER && this.state.game.status !== GameStatus.UNCONNECTED) {
             if (!this.state.secret.locked) {
-                secret = <div className="card border-light"><div className="card-header">Secret</div><div className="card-body"><ColorSelection submit={this.onSecretSubmit}/></div></div>;
+                secret = <ColorSelection submit={this.onSecretSubmit}/>;
             } else {
-                secret = <div className="card border-light"><div className="card-header">Secret</div><div className="card-body"><ColorDisplay colors={this.state.secret.code}/></div></div>;
+                secret = <ColorDisplay colors={this.state.secret.code}/>;
             }
         }
 
         let play = null;
 
-        if (this.state.game.role === ROLE_CODEBREAKER && this.state.game.status !== GameStatus.UNCONNECTED) {
+        if (this.state.game.role === Role.CODE_BREAKER && this.state.game.status !== GameStatus.UNCONNECTED) {
             if (this.state.attempts.length >= this.state.configuration.maxAttempts) {
-                play = <div>game over pal</div>;
+                statusMessage = <Alert type="danger" message="You have exhausted all the available attempts without finding the secret!" />;
+                play = null;
             } else if (this.state.game.status === GameStatus.PLAYING) {
                 play = <div className="card border-light"><div className="card-header">Attempt</div><div className="card-body"><ColorSelection submit={this.onAttemptSubmit}/></div></div>;
             }
@@ -272,99 +283,74 @@ class Board extends React.Component {
         if (this.state.game.status === GameStatus.UNCONNECTED) {
             lineBreak = null;
             statusMessage =
-                <div className="alert alert-info" role="alert">You are currently not connected to anyone!</div>;
+                <Alert type="danger" message="You are currently not connected to anyone!" />;
         }
 
         if (this.state.game.status === GameStatus.WAITING_FOR_CODEMAKER) {
-            if (this.state.game.role === ROLE_CODEMAKER) {
-                statusMessage = <div className="alert alert-warning" role="alert">Set the secret!</div>;
+            if (this.state.game.role === Role.CODE_MAKER) {
+                statusMessage = <Alert type="info" message="Please set a secret combination for the CODEBREAKER!" />;
             } else {
-                statusMessage =
-                    <div className="alert alert-warning" role="alert">Waiting for the codemaker to set a secret!</div>;
+                statusMessage = <Alert type="info" message="Waiting for the CODEMAKER to set a secret combination!" />;
             }
         }
 
-        let foundSolution = '';
         if (this.state.game.foundSolution) {
-            foundSolution = <div>Solution found!</div>
+            statusMessage = <Alert type="success" message="Congratulations! You have found the secret!" />;
         }
 
         return <div>
-
-
-
             <header className="mastermind-navbar navbar-light bg-light">
                 <div className="container">
                     <div className="row align-items-center">
-                        <div className="col-xl-8">
-                            <h1>
-                                <img alt="Mastermind Logo" src="//i.imgur.com/rN1zILE.png"/>
-                                <span>mastermind</span>
-                            </h1>
-                            <small>is a code-breaking game for two players invented in 1970 by Mordecai Meirowitz.</small>
+                        <div className="col-xl-8 col-12">
+                            <Header/>
                         </div>
                         <div className="col">
-                            <code>{this.me.id}</code>
+                            <Identifier id={this.me.id} />
                         </div>
                     </div>
-                </div>
-                <div className="container">
                     <div className="row">
                         <div className="col">
-                            <NodeConnect onPeerConnect={this.onPeerConnect}/>
+
+                            {this.state.game.status === GameStatus.UNCONNECTED &&
+                                <NodeConnect status={this.state.game.status}
+                                         onPeerConnect={this.onPeerConnect}/>
+                            }
+
+                            {this.state.game.status !== GameStatus.UNCONNECTED &&
+                            <div>playing</div>
+                            }
                         </div>
                     </div>
                 </div>
             </header>
 
-
-
-                <br />
-
             <div className="container">
                 <div className="row">
-                    <div className="col-xl">{statusMessage}</div>
+                    <div className="col">{statusMessage}</div>
                 </div>
-                <div className="row">
-                    <div className="col-xl">
-                        <AttemptCollection max={this.state.configuration.maxAttempts} attempts={this.state.attempts}/>
-                        {foundSolution}
 
-                        {lineBreak}
+                {this.state.game.status !== GameStatus.UNCONNECTED &&
+                    <div className="row">
+                        <div className="col">
+                            {secret}
 
-                        {play}
 
-                        {lineBreak}
-
-                        {secret}
-                    </div>
-                    <div className="col-xl-5">
+                            {this.state.game.status === GameStatus.PLAYING &&
+                            <AttemptCollection
+                                max={this.state.configuration.maxAttempts}
+                                attempts={this.state.attempts}/>
+                            }
 
 
 
-                        <br/>
 
-                        <div className="card bg-light">
-                            <div className="card-header">Chat</div>
-                            <div className="card-body">
-                                <div className="alert alert-warning" role="alert">
-                                    Under Development
-                                </div>
-                            </div>
-                        </div>
+                            {play}
 
-                        <br/>
 
-                        <div className="card bg-light">
-                            <div className="card-header">Score</div>
-                            <div className="card-body">
-                                <div className="alert alert-warning" role="alert">
-                                    Under Development
-                                </div>
-                            </div>
                         </div>
                     </div>
-                </div>
+                }
             </div>
         </div>;
     }

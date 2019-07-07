@@ -28,12 +28,13 @@ const style1 = {
 };
 
 const AttemptCollection = props =>
+    <div className="row">
     <div className="card border-secondary">
         <div className="card-header">{props.attempts.length}/{props.max} attempts</div>
         <div className="card-body">
             {
                 props.attempts.map((attempt, index) =>
-                    <div key={index}>
+                    <div className='col' key={index}>
                         <div style={style1}>
                             <ColorDisplay colors={attempt.attempt}/>
                         </div>
@@ -46,6 +47,7 @@ const AttemptCollection = props =>
                 )
             }
         </div>
+    </div>
     </div>;
 
 AttemptCollection.displayName = 'AttemptCollection';

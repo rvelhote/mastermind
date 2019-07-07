@@ -22,7 +22,7 @@
 
 const FEEDBACK_CORRECT = 'correct';
 const FEEDBACK_EXISTS = 'exists';
-const FEEDBACK_EMPTY = 'empty';
+const FEEDBACK_EMPTY = 'failure';
 
 /**
  * Each guess is made by placing a row of code pegs on the decoding board. Once placed, the codemaker provides
@@ -77,7 +77,7 @@ function verify(secret, attempt) {
         collected[s]++;
     });
 
-    return feedback;
+    return feedback.sort();
 }
 
 /**
